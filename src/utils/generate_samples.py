@@ -151,4 +151,4 @@ def generate_dataset(base_dir: str, samples_per_class: int = 20):
 
 if __name__ == "__main__":
     print("Generating synthetic dataset...\n")
-    generate_dataset("data/raw", samples_per_class=20)
+    generate_dataset("data/raw", samples_per_class=200)
