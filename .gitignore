@@ -23,7 +23,13 @@ env/
 # Data & results (too large for git, regenerate locally)
 data/raw/
 data/processed/
-results/
+
+# Ignore everything in results/ EXCEPT the plots directory
+results/*
+!results/plots/
+# Inside results/plots, ignore PDFs (large, regeneratable) but keep PNGs
+results/plots/*.pdf
+
 *.wav
 *.mp3
 *.flac
