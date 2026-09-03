@@ -47,13 +47,13 @@ The differentiator is not the acoustic front-end (which is well understood) but 
 
 ---
 
-## Results (on synthetic data)
+## Results (synthetic data only — see Limitations for real-audio findings)
 
 ### Binary classifier — alarm vs ambient
 
 - **Test accuracy: 100%** on 150-sample held-out synthetic test set
 - Precision: 100%, Recall: 100%
-- Trained in ~3 minutes on an Intel MacBook (CPU only)
+- Trained in ~3 minutes on an Apple M1 Pro (CPU only, no Metal acceleration)(CPU only)
 
 ![Binary training curves](results/plots/binary_training_curves.png)
 
@@ -179,7 +179,11 @@ tiger-acoustic-prescreening/
 
 Being upfront about what this system is and isn't:
 
-**Data.** The 100% accuracy figures above are on synthetic audio generated to match published frequency profiles of the target species. Real xeno-canto and field recordings will introduce microphone variability, distance attenuation, wind, rain, overlapping calls, and species-specific texture that the synthetic generator does not model. Expected real-world accuracy will be materially lower until the model is fine-tuned on actual labelled recordings. The pipeline is deliberately built to make that swap trivial (`dataset.py` needs only a new folder pointed at real WAVs).
+**Data — measured, not hypothetical.** The 100% accuracy figures above are on synthetic audio generated to match published frequency profiles of the target species. Initial testing on real audio revealed that the classifier does not generalize: a 37-second Indian Grey Hornbill recording returned 100% "alarm" classification at maximum confidence, and an 8-minute real chital recording flagged ~92% of the duration as alarm activity — but the hornbill result shows this is not species-specific detection. The model has effectively learned "sustained mid-frequency vocalization in 500–4000 Hz → alarm," which fires on any biological sound in that band.
+
+**Root cause.** The synthetic "ambient" class in `generate_samples.py` contains only cicadas (5500–7000 Hz), low wind (50 Hz), and Gaussian noise. It does not contain real biological sounds like bird calls, crickets in the alarm frequency band, or frog calls. The model was never given negative examples in the frequency range that matters, so it learned an over-permissive rule. This is a training-data limitation, not a pipeline or architecture problem.
+
+**Fix in progress.** The preprocessing pipeline, sliding-window inference, heatmap generation, and PDF export all work correctly on real audio and require no changes. What's needed is a rebuilt training dataset: real forest ambient recordings (birds, crickets, frogs, wind) as negatives, plus real alarm-call recordings from Xeno-canto, iNaturalist, and safari footage as positives. See Roadmap.
 
 **Field validation.** No AudioMoth grid deployment has been run. Sensor placement, weatherproofing, SD card management, and end-to-end operational workflow have been designed but not tested in a real reserve.
 
